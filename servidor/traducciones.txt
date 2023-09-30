@@ -1,0 +1,4 @@
+dog:perro
+home:casa
+water:agua
+party:fiesta

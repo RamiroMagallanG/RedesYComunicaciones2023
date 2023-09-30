@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1693329142 source:/home/ramiro/Documentos/c Programs/RedesYComunicaciones2023/servidor/main.c
-	<stdio.h>
-	<stdlib.h>
-	<sys/socket.h>
-	<netinet/in.h>
-

@@ -256,7 +256,7 @@ int traducirPalabra(char* palabraATraducir, char* palabraYaTraducida){
     char palabraIngles[128];
     char palabraEspaniol[128];
 
-    pasarAMinusculas(palabraATraducir, sizeof(palabraATraducir));
+    pasarAMinusculas(palabraATraducir, strlen(palabraATraducir));
 
     while (fgets(linea, sizeof(linea), archivo) != NULL){
         if (sscanf(linea, "%[^:]:%s", palabraIngles, palabraEspaniol) < 0){
@@ -367,7 +367,7 @@ int nuevaTraduccion(int socketDescriptor){
             }
         }
 
-        if(snprintf(linea, sizeof(linea), "\n%s:%s", palabraIngles, palabraEspaniol) < 0){
+        if(snprintf(linea, sizeof(linea), "%s:%s\n", palabraIngles, palabraEspaniol) < 0){
             perror("--->>>Error al formatear traduccion.");
             fclose(archivo);
             return ERROR_DE_PROCESAMIENTO;
@@ -402,7 +402,7 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
     strcpy(password, parInicioSesion[1]);
     
     int contadorLineas = 0;
-    char linea[100];
+    char linea[TAMANIO_MENSAJE];
 
     FILE *archivo = abrirArchivo(ARCHIVO_CREDENCIALES, METODO_READING_PLUS);
 
@@ -417,14 +417,15 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
         if (strcmp(usernameArchivo, username) == 0){
             if ((strcmp(rolUsuario, ROL_ADMINISTRADOR) != 0) && (numeroIntentos == 0)){
                 //Si el usuario no tiene el rol de 'ADMIN' y el numero de intentos es igual a 0
+                
+                snprintf(linea, sizeof(linea), MENSAJE_USUARIO_BLOQUEADO, username);
+                mandarMensaje(socketDescriptor, linea, strlen(linea));
                 registrarLog(LOG_ERROR_USUARIO_INICIO_SESION);
                 fclose(archivo);
                 return CUENTA_BLOQUEADA;
-
             } else {
                 if (strcmp(passwordArchivo, password) == 0){ 
                     //Si la contraseña en el archivo y la pasada por argumentos son iguales
-
                     char log[TAMANIO_MENSAJE];
                     snprintf(log, sizeof(log), LOG_EXITO_INICIO_SESION, username);
 
@@ -440,9 +441,14 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                         //Si el usuario no tiene el rol de 'ADMIN'
                         numeroIntentos--; 
 
+                        if(numeroIntentos == 0){
+                            snprintf(linea, sizeof(linea), USUARIO_BLOQUEADO);
+                            mandarMensaje(socketDescriptor, linea, strlen(linea));
+                        }
+
                         for(int indiceReemplazoLinea = 0; indiceReemplazoLinea<contadorLineas; indiceReemplazoLinea++){
                             if(indiceReemplazoLinea == contadorLineas-1){
-                                if(snprintf(linea, sizeof(linea), "%s|%s|%s|%d", usernameArchivo, passwordArchivo, rolUsuario, numeroIntentos) < 0){
+                                if(snprintf(linea, sizeof(linea), "%s|%s|%s|%d\n", usernameArchivo, passwordArchivo, rolUsuario, numeroIntentos) < 0){
                                     perror("--->>>Error al formatear usuario.");
                                     fclose(archivo);
                                     return ERROR_DE_PROCESAMIENTO;
@@ -450,10 +456,6 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                                 fseek(archivo, -strlen(linea), SEEK_CUR);
                                 fputs(linea, archivo);
                             }
-                        }
-                        if(numeroIntentos == 0){
-                            snprintf(linea, sizeof(linea), MENSAJE_USUARIO_BLOQUEADO, username);
-                            mandarMensaje(socketDescriptor, linea, strlen(linea));
                         }
                     }
 
@@ -508,6 +510,11 @@ int tomarDatosNuevoUsuario(int socketDescriptor, char* user, char* usernameValid
     mandarMensaje(socketDescriptor, MENSAJE_NUEVA_CONTRASENIA, sizeof(MENSAJE_NUEVA_CONTRASENIA));
     recibirMensaje(socketDescriptor, contrasenia, sizeof(contrasenia));
 
+    if(comprobarCadenaVacia(contrasenia) == ERROR_CADENA_VACIA){
+        mandarMensaje(socketDescriptor, MENSAJE_ERROR_DATOS_VACIOS, sizeof(MENSAJE_ERROR_DATOS_VACIOS));
+        return ERROR_USUARIO_DATOS_VACIOS;
+    }
+
     char rol[15];
     char desicion[5];
 
@@ -522,7 +529,7 @@ int tomarDatosNuevoUsuario(int socketDescriptor, char* user, char* usernameValid
 
     char linea[TAMANIO_MENSAJE];
 
-    if(snprintf(linea, sizeof(linea), "\n%s|%s|%s|%d", username, contrasenia, rol, 3) < 0){
+    if(snprintf(linea, sizeof(linea), "%s|%s|%s|%d\n", username, contrasenia, rol, 3) < 0){
         perror("--->>>Error al formatear usuario.");
         return ERROR_DE_PROCESAMIENTO;
     }
@@ -607,6 +614,10 @@ int desbloquearUsuario(int socketDescriptor){
     mandarMensaje(socketDescriptor, MENSAJE_ELEGIR_DESBLOQUEAR_USUARIO, sizeof(MENSAJE_ELEGIR_DESBLOQUEAR_USUARIO));
     recibirMensaje(socketDescriptor, username, sizeof(username));
 
+    if(strcmp(username, SALIR_MENU_ACTUAL) == 0){
+        return USUARIO_QUIERE_SALIR;
+    }
+
     FILE* archivo = abrirArchivo(ARCHIVO_CREDENCIALES, METODO_READING_PLUS);
 
     while(fgets(linea, sizeof(linea), archivo) != NULL){
@@ -619,7 +630,7 @@ int desbloquearUsuario(int socketDescriptor){
             (strcmp(username, usernameArchivo) == 0) &&
             intentos == 0){
 
-            if(snprintf(linea, sizeof(linea), "\n%s|%s|%s|%d", usernameArchivo, rol, contrasenia, 3) < 0){
+            if(snprintf(linea, sizeof(linea), "%s|%s|%s|%d\n", usernameArchivo, rol, contrasenia, 3) < 0){
                 perror("--->>>Error al leer el contenido del archivo.");
                 fclose(archivo);
                 return ERROR_DE_PROCESAMIENTO;
@@ -639,7 +650,7 @@ int desbloquearUsuario(int socketDescriptor){
             return USUARIO_DESBLOQUEADO;
         }
     }
-    mandarMensaje(socketDescriptor, MENSAJE_ERROR_NO_SE_ENCONTRARON_BLOQUEADOS, sizeof(MENSAJE_ERROR_NO_SE_ENCONTRARON_BLOQUEADOS));
+    mandarMensaje(socketDescriptor, USUARIO_NO_ENCONTRADO, sizeof(USUARIO_NO_ENCONTRADO));
     fclose(archivo);
     return ERROR_USUARIO_NO_ENCONTRADO;
 }

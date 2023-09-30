@@ -435,6 +435,7 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                     return INICIO_DE_SESSION_CORRECTO;
 
                 } else {
+                    mandarMensaje(socketDescriptor, MENSAJE_CONTRASENIA_INCORRECTA, sizeof(MENSAJE_CONTRASENIA_INCORRECTA));
                     if(strcmp(rolUsuario, ROL_ADMINISTRADOR) != 0){
                         //Si el usuario no tiene el rol de 'ADMIN'
                         numeroIntentos--; 
@@ -448,7 +449,6 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                                 }
                                 fseek(archivo, -strlen(linea), SEEK_CUR);
                                 fputs(linea, archivo);
-                                mandarMensaje(socketDescriptor, MENSAJE_CONTRASENIA_INCORRECTA, sizeof(MENSAJE_CONTRASENIA_INCORRECTA));
                             }
                         }
                         if(numeroIntentos == 0){

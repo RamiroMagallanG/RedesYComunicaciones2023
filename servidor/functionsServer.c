@@ -134,7 +134,6 @@ void funcionBaseRecibirMensaje(int socketDescriptor, char *mensaje, size_t taman
 void recibirMensaje(int socketDescriptor, char *mensaje, size_t tamanioMensaje){
     mandarAlertaEntrada(socketDescriptor);
     funcionBaseRecibirMensaje(socketDescriptor, mensaje, tamanioMensaje);
-    printf("--->>>DEBUG:'%s'\n", mensaje);
     registrarLog(LOG_EXITO_RECIBIR_MENSAJE);
 }
 
@@ -449,6 +448,7 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                                 }
                                 fseek(archivo, -strlen(linea), SEEK_CUR);
                                 fputs(linea, archivo);
+                                mandarMensaje(socketDescriptor, MENSAJE_CONTRASENIA_INCORRECTA, sizeof(MENSAJE_CONTRASENIA_INCORRECTA));
                             }
                         }
                         if(numeroIntentos == 0){

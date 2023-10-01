@@ -769,11 +769,12 @@ void submenu(int socketDescriptor){
             case OPCION_DESBLOQUEO:
                 if(listaDeUsuariosBloqueados(socketDescriptor) != 0){
                     resultado = desbloquearUsuario(socketDescriptor);
-                    if(resultado != USUARIO_QUIERE_SALIR){
-                        mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
-                        mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));  
+                    if(resultado == USUARIO_QUIERE_SALIR){
+                        break;          
                     }
                 }
+                mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
+                mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
                 break;
             case USUARIO_QUIERE_SALIR:
                 break;

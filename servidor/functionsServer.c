@@ -707,48 +707,80 @@ int menuOpcion(int socketDescriptor, char* rol){
     recibirMensaje(socketDescriptor, mensaje, sizeof(mensaje));
 
     if (strcmp(mensaje, MENU_OPCION_TRADUCIR) == 0){
-        if(!comprobarRol(rol, ROL_CONSULTA, socketDescriptor)){   
+        if(!comprobarRol(rol, ROL_CONSULTA, socketDescriptor))
             return ERROR_FALTA_PERMISO;
-        }
         resultado = OPCION_TRADUCIR;
     } else if (strcmp(mensaje, MENU_NUEVA_TRADUCCION) == 0){
-        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor)){   
+        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor))
             return ERROR_FALTA_PERMISO;
-        }
         resultado = OPCION_NUEVA_TRADUCCION;
     } else if (strcmp(mensaje, MENU_USUARIOS) == 0){
-
         if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor)){   
             return ERROR_FALTA_PERMISO;
+        } else {
+            resultado = OPCION_USERS;
         }
-
-        mostrarSubMenuUsuarios(socketDescriptor);
-        mandarMensaje(socketDescriptor, MENSAJE_INGRESAR_COMANDO, sizeof(MENSAJE_INGRESAR_COMANDO));
-        recibirMensaje(socketDescriptor, mensaje, sizeof(mensaje));
-
-        if(strcmp(mensaje, SALIR_MENU_ACTUAL) == 0) return USUARIO_QUIERE_SALIR;
-
-        if (strcmp(mensaje, SUBMENU_USUARIOS_ALTA) == 0){
-            resultado = OPCION_ALTA;
-        } else if (strcmp(mensaje, SUBMENU_USUARIOS_DESBLOQUEO) == 0){
-            resultado = OPCION_DESBLOQUEO;
-        }
-
     } else if (strcmp(mensaje, MENU_REGISTRO_ACTIVIDADES) == 0){
-        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor)){   
+        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor))
             return ERROR_FALTA_PERMISO;
-        }
         resultado = OPCION_ACTIVIDADES;
     } else if (strcmp(mensaje, MENU_CERRAR_SESION) == 0){
         resultado = OPCION_CERRAR_SESION;
     } else if (strcmp(mensaje, MENSAJE_APAGAR_SERVIDOR) == 0){
-        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor)){   
+        if(!comprobarRol(rol, ROL_ADMINISTRADOR, socketDescriptor)) 
             return ERROR_FALTA_PERMISO;
-        }
-
         resultado = OPCION_APAGAR_SERVIDOR;
     }
     return resultado;
+}
+
+int submenuOpciones(int socketDescriptor){
+    char mensaje[TAMANIO_MENSAJE];
+    int resultado;
+
+    mostrarSubMenuUsuarios(socketDescriptor);
+    mandarMensaje(socketDescriptor, MENSAJE_INGRESAR_COMANDO, sizeof(MENSAJE_INGRESAR_COMANDO));
+    recibirMensaje(socketDescriptor, mensaje, sizeof(mensaje));
+
+    if(strcmp(mensaje, SALIR_MENU_ACTUAL) == 0){
+        resultado = USUARIO_QUIERE_SALIR;
+    } else if (strcmp(mensaje, SUBMENU_USUARIOS_ALTA) == 0){
+        resultado = OPCION_ALTA;
+    } else if (strcmp(mensaje, SUBMENU_USUARIOS_DESBLOQUEO) == 0){
+        resultado = OPCION_DESBLOQUEO;
+    }
+    return resultado;
+}
+
+void submenu(int socketDescriptor){
+    int resultado;
+    do{
+        resultado = submenuOpciones(socketDescriptor);
+        switch (resultado){
+            case OPCION_ALTA:
+                int resultado = nuevoUsuario(socketDescriptor);
+                mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
+                mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
+                break;
+            case OPCION_DESBLOQUEO:
+                if(listaDeUsuariosBloqueados(socketDescriptor) != 0){
+                    resultado = desbloquearUsuario(socketDescriptor);
+                    if(resultado != USUARIO_QUIERE_SALIR){
+                        mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
+                        mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));  
+                    }
+                }
+                break;
+            case USUARIO_QUIERE_SALIR:
+                break;
+            default:
+                mandarMensaje(socketDescriptor, MENSAJE_DEFAULT, sizeof(MENSAJE_DEFAULT));
+                mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
+                mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
+                break;
+        }
+        mandarMensaje(socketDescriptor, MENSAJE_LIMPIAR_PANTALLA, sizeof(MENSAJE_LIMPIAR_PANTALLA));
+    }while (resultado != USUARIO_QUIERE_SALIR);
 }
 
 void menuServidor(int socketServidor){
@@ -773,23 +805,13 @@ void menuServidor(int socketServidor){
                 mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
                 mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
                 break;
-            case OPCION_ALTA:
-                int resultado = nuevoUsuario(socketDescriptor);
-                mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
-                mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
-                break;
-            case OPCION_DESBLOQUEO:
-                if(listaDeUsuariosBloqueados(socketDescriptor) == 0) break;
-                desbloquearUsuario(socketDescriptor);
-                mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
-                mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
-                break;
+            case OPCION_USERS:
+                submenu(socketDescriptor);
+                break;        
             case OPCION_ACTIVIDADES:
                 mostrarRegistro(socketDescriptor);
                 mandarMensaje(socketDescriptor, MENSAJE_ESPERAR_ENTER, sizeof(MENSAJE_ESPERAR_ENTER));
                 mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
-                break;
-            case USUARIO_QUIERE_SALIR:
                 break;
             case OPCION_CERRAR_SESION:
                 socketDescriptor = aceptarConexion(socketServidor);
@@ -807,7 +829,6 @@ void menuServidor(int socketServidor){
                 mandarMensaje(socketDescriptor, MENSAJE_PAUSAR_PROGRAMA, sizeof(MENSAJE_PAUSAR_PROGRAMA));
                 break; 
         }
-        
         mandarMensaje(socketDescriptor, MENSAJE_LIMPIAR_PANTALLA, sizeof(MENSAJE_LIMPIAR_PANTALLA));
     }
     cerrarConexion(socketServidor);

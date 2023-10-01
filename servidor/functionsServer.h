@@ -120,7 +120,7 @@
 
 //--->>>Opciones del menu<<<---
 #define MENSAJE_LOGOUT "/LOGOUT"
-#define USUARIO_LOGOUT 7
+#define USUARIO_LOGOUT 8
 #define SALIR_MENU_ACTUAL "/SALIR"
 #define USUARIO_QUIERE_SALIR -5
 #define OPCION_SALIR_MENU_ACTUAL -3
@@ -129,16 +129,17 @@
 #define MENU_NUEVA_TRADUCCION "/NUEVA_TRADUCCION"
 #define OPCION_NUEVA_TRADUCCION 2
 #define MENU_USUARIOS "/USERS"
+#define OPCION_USERS 3
 #define SUBMENU_USUARIOS_ALTA "/ALTA"
-#define OPCION_ALTA 3
+#define OPCION_ALTA 4
 #define SUBMENU_USUARIOS_DESBLOQUEO "/DESBLOQUEO"
-#define OPCION_DESBLOQUEO 4
+#define OPCION_DESBLOQUEO 5
 #define MENU_REGISTRO_ACTIVIDADES "/ACTIVIDADES"
-#define OPCION_ACTIVIDADES 5
+#define OPCION_ACTIVIDADES 6
 #define MENU_CERRAR_SESION "/LOGOUT"
-#define OPCION_CERRAR_SESION 6
+#define OPCION_CERRAR_SESION 7
 #define MENSAJE_APAGAR_SERVIDOR "/APAGAR"
-#define OPCION_APAGAR_SERVIDOR 8
+#define OPCION_APAGAR_SERVIDOR 9
 
 //--->>>Paginas de menu<<<---
 #define MENU_BASE_TRADUCIR "\n\nTraducir palabra -----------> /TRADUCIR"
@@ -369,6 +370,16 @@ void mostrarSubMenuUsuarios(int socketDescriptor);
 //pre:	Toma como argumento el descriptor del socket.
 //pos:	Devuelve el numero de la opcion elegida por el usuario.
 int menuOpcion(int socketDescriptor, char* rol);
+
+//->Muestra las opciones y devuelve el numero de opcion elegida del submenu de usuarios.
+//pre:	Toma como argumento el descriptor del socket.
+//pos:	Devuelve el numero de la opcion elegida por el usuario.
+int submenuOpciones(int socketDescriptor);
+
+//->Libera de logica al switch del menu principal.
+//pre:	Toma como argumento el descriptor del socket.
+//pos:	No devuelve nada.
+void submenu(int socketDescriptor);
 
 //->Maneja la interacción del servidor con el programa cliente.
 //pre:	Toma como arguemento el descriptor del socket del servidor.

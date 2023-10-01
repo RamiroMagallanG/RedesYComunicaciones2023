@@ -418,7 +418,9 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
             if ((strcmp(rolUsuario, ROL_ADMINISTRADOR) != 0) && (numeroIntentos == 0)){
                 //Si el usuario no tiene el rol de 'ADMIN' y el numero de intentos es igual a 0
                 
-                snprintf(linea, sizeof(linea), MENSAJE_USUARIO_BLOQUEADO, username);
+                if(snprintf(linea, sizeof(linea), MENSAJE_USUARIO_BLOQUEADO, username) >= sizeof(linea)){
+                    perror("Buffer excedido.");
+                }
                 mandarMensaje(socketDescriptor, linea, strlen(linea));
                 registrarLog(LOG_ERROR_USUARIO_INICIO_SESION);
                 fclose(archivo);
@@ -427,7 +429,9 @@ int validarCuenta(int socketDescriptor, char parInicioSesion[][512], char* rol){
                 if (strcmp(passwordArchivo, password) == 0){ 
                     //Si la contraseña en el archivo y la pasada por argumentos son iguales
                     char log[TAMANIO_MENSAJE];
-                    snprintf(log, sizeof(log), LOG_EXITO_INICIO_SESION, username);
+                    if(snprintf(log, sizeof(log), LOG_EXITO_INICIO_SESION, username) >= sizeof(log)){
+                        perror("Buffer excedido.");
+                    }
 
                     registrarLog(log);
 

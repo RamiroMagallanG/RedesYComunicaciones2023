@@ -94,6 +94,9 @@
 #define MENSAJE_ERROR_DESBLOQUEAR_USUARIOS "\nError en el proceso de desbloqueo."
 #define MENSAJE_ERROR_DATOS_VACIOS "\nError al dar de alta el nuevo usuario: datos incompletos."
 #define MENSAJE_ESPERAR_ENTER "\n\nPresione enter para salir al menu principal."
+#define MENSAJE_CONTRASENIA_INCORRECTA "\nDatos de usuario incorrectos."
+#define USUARIO_BLOQUEADO "\nEl usuario se encuentra bloqueado."
+#define USUARIO_NO_ENCONTRADO "\nNo se encontro usuario bloqueado con ese username."
 
 //--->>>Mensajes LOG<<<---
 #define LOG_FECHA_HORA_BASE "\n%d-%02d-%02dT%02d:%02d:%02d: "

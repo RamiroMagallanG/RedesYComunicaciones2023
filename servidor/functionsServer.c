@@ -661,24 +661,20 @@ int desbloquearUsuario(int socketDescriptor){
 
 
 //------------------------------------------>>>Funciones administrador<<<------------------------------------------
-void mostrarRegistro(int socketDescriptor){
+void mostrarRegistro(int socketDescriptor) {
     FILE* archivo = abrirArchivo(ARCHIVO_LOG, METODO_READING);
     char mensaje[TAMANIO_MENSAJE];
 
-    int contador = 0;
+    // Obtener el tamaño del archivo
+    fseek(archivo, 0, SEEK_END);  // Mueve el puntero al final del archivo
+    long tamañoArchivo = ftell(archivo);  // Obtiene la posición actual (que es el tamaño del archivo)
+    fseek(archivo, 0, SEEK_SET);  // Vuelve al principio del archivo para la lectura
 
-    while(fgets(mensaje, sizeof(mensaje), archivo)){
-        contador++;
-    }
-
-    fclose(archivo);
-    archivo = abrirArchivo(ARCHIVO_LOG, METODO_READING);
-
-    while(fgets(mensaje, sizeof(mensaje), archivo) && contador){
+    while (fgets(mensaje, sizeof(mensaje), archivo) && tamañoArchivo > 0) {
         mandarMensaje(socketDescriptor, mensaje, strlen(mensaje));
-        contador--;
-    }
 
+        tamañoArchivo -= strlen(mensaje);
+    }
     fclose(archivo);
 }
 
